@@ -155,7 +155,7 @@ fplot(Vy4,[0 L]);
 
 title('Deflexão da viga');
 xlabel('x [m]');
-ylabel('Vy(x) [N]');
+ylabel('Vy(x) [m]');
 grid on
 legend('Deflexão - P=0','Deflexão - P=M0/(2*L)','Deflexão - P=M0/L','Deflexão - P=2*M0/L','Location','best');
 hold off;
@@ -165,7 +165,7 @@ Mz1 = @(x) P5*L - M0 - P5*x + M0 * sing(x,L/2,0);
 sigma_xx = @(x,y) -(Mz1(x)*y)/Izz;
 
 b = (10*d(3) + 2*d(4))*0.01;
-h = 3*b*1e-2;
+h = 3*b;
 
 figure
 fsurf(sigma_xx, [0 L -h/2 h/2]);
@@ -181,6 +181,92 @@ legend('\sigma_{xx}(x,y) na viga');
 
 
 %% PARTE 2
-P1 = 0;
-Vy1 = @(x) ((P1*L-M0).*x.^2/2 - P1/6.*x.^3 + M0/2*sing(x,L/2,2))/(E*Izz);
-fplot(Vy1,[0 L]);
+x = L;
+Vy = @(P) ((P*L-M0)*x^2/2 - P/6*x^3 + M0/2*sing(x,L/2,2))/(E*Izz);
+
+figure
+fplot(Vy, [0 2*M0/L])
+hold on;
+ylabel('Vy(x) [m]');
+xlabel('P [N]');
+%a deflexao da viga será nula no seguinte ponto:
+deflexao_nula = fzero(Vy, 0.01)
+plot(deflexao_nula, 0,'o',Color='r')
+title('Deflexão em função da carga P')
+grid on;
+legend('Mz - equações', 'Mz máximo')
+hold off;
+
+
+%% Discuta
+
+
+%% Parte 3
+
+x = L;
+Vy = @(P) ((P*L-M0)*x^2/2 - P/6*x^3 + M0/2*sing(x,L/2,2))/(E*Izz);
+deflexao_nula = fzero(Vy, 0.01);
+
+P1 = deflexao_nula;
+Vy1 = @(x1) ((P1*L-M0).*x1.^2/2 - P1/6.*x1.^3 + M0/2*sing(x1,L/2,2))/(E*Izz);
+
+fplot(Vy1, [0 L])
+hold on;
+title('Deflexão máxima e mínima')
+xlabel('x [m]');
+ylabel('Vy(x) [m]');
+xmax = fminbnd(@(x) -Vy1(x),0,L);
+Vy1max = Vy1(xmax);
+xmin = fminbnd(Vy1,0,L);
+Vy1min = Vy1(xmin);
+plot(xmax,Vy1max,'o',Color='r');
+plot(xmin,Vy1min,'o',Color='black');
+legend('Deflexão da viga', 'Deflexão máxima','Deflexão mínima');
+hold off;
+
+%% Discuta
+
+
+%% Parte4
+
+RA = '183045';
+d = converteRA(RA);
+[L, Izz, M0] = dados(d);
+
+E = 210 * 10^9;
+densidade = 7850;
+
+b = (10*d(3) + 2*d(4))*0.01;
+h = 3*b;
+g = 9.81;
+w0 = densidade*b*h*g;
+P = M0/L;
+
+%Ra Rd Ma
+A = [L 0 1
+    (3*L/2) 0 1
+    1 1 0];
+
+B = [((w0*(L^2)/2)-M0) ((w0*(3*L/2)^2)/2-M0-P*(3*L/2-L)) (w0*(3*L/2)-P)].';
+
+resposta = A\B;
+
+%assumindo w0 = 0
+w0_1 = 0;
+B1 = [((w0_1*(L^2)/2)-M0) ((w0_1*(3*L/2)^2)/2-M0-P*(3*L/2-L)) (w0_1*(3*L/2)-P)].';
+resposta1 = A\B1;
+
+%assumindo w0 = 0 e P = 0
+P2 = 0;
+B2 = [((w0_1*(L^2)/2)-M0) ((w0_1*(3*L/2)^2)/2-M0-P2*(3*L/2-L)) (w0_1*(3*L/2)-P2)].';
+resposta2 = A\B2;
+
+
+%assumindo w0 = 0 e M0 = 0
+M0_1 = 0;
+B3 = [((w0_1*(L^2)/2)-M0_1) ((w0_1*(3*L/2)^2)/2-M0_1-P*(3*L/2-L)) (w0_1*(3*L/2)-P)].';
+resposta3 = A\B3;
+
+
+%fazendo a tabela, temos
+table1 = table(["Ra" "Rd" "Ma"]',resposta, resposta1, resposta2, resposta3)

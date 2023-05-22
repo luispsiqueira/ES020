@@ -1,16 +1,7 @@
-clc; clear; close all force
-
-RA = '183045';
-d = converteRA(RA);
-[L, Izz, M0] = dados(d);
-
-E = 210e9;
-densidade = 7850;
-
+%% PARTE 1
 P = M0/L;
 
-
-%momento fletor
+%% momento fletor
 %metodo 1 - usando singularidade
 Mz = @(x) P*L - M0 - P*x + M0 * sing(x,L/2,0);
 
@@ -35,8 +26,8 @@ ylabel('Mz(x) [N.m]');
 xlabel('x [m]');
 plot(x, Mz2,'r','LineWidth',1);
 grid on;
-plot(L/2, Mz(L/2),'o',Color='g');
-plot(L/2, -Mz(L/2),'o',Color='g');
+plot(L/2, Mz(L/2),'o','MarkerFaceColor','g');
+plot(L/2, -Mz(L/2),'o','MarkerFaceColor','g');
 legend('Mz - singularidade', 'Mz - equações','Mz máximo')
 hold off;
 
@@ -64,8 +55,7 @@ plot(L/2, -Mz(L/2),'o',Color='g')
 legend('Mz - equações', 'Mz máximo')
 hold off;
 
-
-
+%% Deflexão
 figure
 %Deflexão
 Vy = @(x) ((P*L-M0).*x.^2/2 - P/6.*x.^3 + M0/2*sing(x,L/2,2))/(E*Izz);
@@ -94,11 +84,7 @@ ylabel('Vy(x) [N]');
 grid on
 legend('Deflexão - P=0','Deflexão - P=M0/(2*L)','Deflexão - P=M0/L','Deflexão - P=2*M0/L','Location','best');
 hold off;
-
-
-
-
-%TENSÃO
+%% Tensão 
 P5 = M0/L;
 Mz1 = @(x) P5*L - M0 - P5*x + M0 * sing(x,L/2,0);
 sigma_xx = @(x,y) -(Mz1(x)*y)/Izz;
@@ -114,3 +100,13 @@ xlabel('x [m]');
 ylabel('y [m]');
 legend('\sigma_{xx}(x,y) na viga');
 
+
+%% Discuta
+
+
+function y = sing(x,a,n)
+%singularity function: y =<x-a>^n
+ b = (x>=a);
+ y = (x-a).^n .* (b);
+
+end
